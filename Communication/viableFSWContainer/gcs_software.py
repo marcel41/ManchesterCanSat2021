@@ -22,8 +22,16 @@ payload_telemetry_fields = ['SP_ALTITUDE', 'SP_TEMP', 'SP_ROTATION_RATE']
 
 TEAM_ID = 2869
 
+
+packet_count = None
+mission_time = None
+
 # Define callback.
 def my_data_received_callback(xbee_message):
+    global packet_count
+    global mission_time
+    # data = xbee_message
+
     address = xbee_message.remote_device.get_64bit_addr()
     data = xbee_message.data.decode("utf8")
 
@@ -32,11 +40,16 @@ def my_data_received_callback(xbee_message):
 
     fields = data.split(',')
 
-    if len(fields) != 19 and len(fields) != 7:
-        print('** Critical Error: Received packet is missing fields')
-        return
+    # print(data)
+    # return
+
+    # if len(fields) != 19 and len(fields) != 7:
+    #     print('** Critical Error: Received packet is missing fields')
+    #     return
 
     fields_map = dict(zip(common_telemetry_fields, fields))
+
+    extra_string = ''
 
     csv_file = 'csv_files/' + str(TEAM_ID)
     if fields_map['PACKET_TYPE'] == 'C':
@@ -44,21 +57,40 @@ def my_data_received_callback(xbee_message):
         # csv_file = csv_file + '_C.csv'
         csv_file += '_C.csv'
         # This is a container telemetry packet
-        # fields_map.update(zip(container_telemetry_fields, fields[len(common_telemetry_fields):]))
+        fields_map.update(zip(container_telemetry_fields, fields[len(common_telemetry_fields):]))
+
+        mission_time = fields_map['MISSION_TIME']
+        packet_count = fields_map['PACKET_COUNT']
+
+        extra_string = 'Container: '
+
     elif fields_map['PACKET_TYPE'] == 'S1' or fields_map['PACKET_TYPE'] == 'S2':
+        return
+        extra_string = 'Payload: '
         extra_fields = payload_telemetry_fields
 
         if fields_map['PACKET_TYPE'] == 'S1':
             csv_file += '_SP1.csv'
         else:
             csv_file += '_SP2.csv'
+
+        fields_map.update(zip(container_telemetry_fields, fields[len(common_telemetry_fields):]))
+
+        if mission_time:
+            fields_map['MISSION_TIME'] = mission_time
+        if packet_count:
+            fields_map['PACKET_COUNT'] = packet_count
+
+        # data = ", ".join(fields_map.values())
     else:
         print('** Critical Error: Invalid packet type -', fields_map['PACKET_TYPE'])
         return
         # This is a payload telemetry packet
         # fields_map.update(zip(payload_telemetry_fields, fields[len(common_telemetry_fields):]))
 
-    fields_map.update(zip(extra_fields, fields[len(common_telemetry_fields):]))
+    # fields_map.update(zip(extra_fields, fields[len(common_telemetry_fields):]))
+
+    data = ", ".join(fields_map.values())
 
     # Write data to the correct .csv file
     # Open a file with access mode 'a'
@@ -66,7 +98,11 @@ def my_data_received_callback(xbee_message):
         # Append 'hello' at the end of file
         file_object.write(data + '\n')
 
-    print("Received data from %s: %s" % (address, data))
+    print(extra_string + data)
+
+    if fields_map['PACKET_TYPE'] != 'C':
+        print('')
+    # print("Received data from %s: %s" % (address, data))
 
 
 # Generate the .csv files. One for each payload and container.
@@ -84,6 +120,11 @@ for file in csv_files:
         dest = dirname + '/' + file
         # src = os.path.realpath('csv_files/2869_SP1.csv')
         os.rename(src, dest)
+
+
+# my_data_received_callback("2869, 01:30:57, 59, S1, 302.4, 15.4, 350")
+# quit()
+
 
 # Valid packets
 # Container

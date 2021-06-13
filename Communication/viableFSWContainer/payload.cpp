@@ -53,23 +53,26 @@ bool Payload::checkForSuccess()
 
       if (txStatus.getDeliveryStatus() == SUCCESS) {
         unsigned long time_elapse = millis() - time_Start;
-        Serial.println("SUCCESS" + String(time_elapse));
+        // Serial.println("SUCCESS" + String(time_elapse));
         sucess_trans = true;
       } else {
-        Serial.println("Xbee might not be powered on");
+        // Serial.println("Xbee might not be powered on");
+        ;
       }
     }
   }
   else if (_xbee.getResponse().isError())
   {
-    Serial.print("ERROR");
+    // Serial.print("ERROR");
+    ;
     //nss.print("Error reading packet.  Error code: ");
     //nss.println(_xbee.getResponse().getErrorCode());
   }
   else
   {
     // local _xbee did not provide a timely TX Status Response -- should not happen
-    Serial.println("xbee did not provide a TX status response");
+    // Serial.println("xbee did not provide a TX status response");
+    ;
   }
   return sucess_trans;
 }
@@ -213,11 +216,11 @@ String Payload::send_cmd_and_receive_telemetry(String cmd)
       unsigned long last_time = millis();
       unsigned long start_t = millis();
 
-      unsigned long miliseconds_limit = last_time + 200;
+      unsigned long miliseconds_limit = last_time + 100;
       while(miliseconds_limit > last_time)
       {
         //same as the reading, average 50ms for 11 characters
-        if(_xbee.readPacket(500));
+        if(_xbee.readPacket(200));
         {
           if (_xbee.getResponse().isAvailable()) {
             // Serial.println("There's some RX.");

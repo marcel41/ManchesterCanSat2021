@@ -63,30 +63,33 @@ bool GCS::checkForSuccess()
       _xbee.getResponse().getZBTxStatusResponse(txStatus);
 
       if (txStatus.getDeliveryStatus() == SUCCESS) {
-        Serial.println("SUCCESS");
+        // Serial.println("SUCCESS");
         sucess_trans = true;
       } else {
-        Serial.println("Xbee might not be powered on" + String(txStatus.getDeliveryStatus(), HEX));
+        // Serial.println("Xbee might not be powered on" + String(txStatus.getDeliveryStatus(), HEX));
+        ;
       }
     }
   }
   else if (_xbee.getResponse().isError())
   {
-    Serial.print("ERROR");
+    // Serial.print("ERROR");
+    ;
     //nss.print("Error reading packet.  Error code: ");
     //nss.println(_xbee.getResponse().getErrorCode());
   }
   else
   {
     // local _xbee did not provide a timely TX Status Response -- should not happen
-    Serial.println("xbee did not provide a TX status response");
+    // Serial.println("xbee did not provide a TX status response");
+    ;
   }
   return sucess_trans;
 }
 
 void GCS::send_data(String data)
 {
-  Serial.println("Sending data: " + data);
+  // Serial.println("Sending data: " + data);
   ZBTxRequest zbTx = ZBTxRequest(_addr64, data.c_str(), data.length());
   _xbee.send(zbTx);
 
@@ -99,7 +102,7 @@ callback_function GCS::_onAvailableCommandHandler = NULL;
 XBeeWithCallbacks GCS::_xbee;
 
 void GCS::command_handler_wrapper(ZBRxResponse& rx, uintptr_t) {
-  Serial.println("INSIDE command_handler_wrapper");
+  // Serial.println("INSIDE command_handler_wrapper");
 
   if (_onAvailableCommandHandler)
   {

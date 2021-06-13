@@ -263,6 +263,8 @@ void readSensors()
 
   sensors_event_t temp_event, pressure_event;
   //read temperature
+
+
   while (!dps.temperatureAvailable() || !dps.pressureAvailable()) {
     continue;
   }
@@ -271,6 +273,8 @@ void readSensors()
   // Serial.println(pressure_event.pressure);
   // Serial.println(dps.readAltitude(1023));
   calculatedAltitude = getAlt(pressure_event.pressure,tempCalculated);
+
+
 
   smartDelay(100);
 
@@ -301,6 +305,8 @@ void setUpSensors()
 
   //Look for the sensors
   // SerialMonitor.println("DPS310");
+
+
   if (! dps.begin_I2C()) {             // Can pass in I2C address here
     //if (! dps.begin_SPI(DPS310_CS)) {  // If you want to use SPI
       // SerialMonitor.println("Failed to find DPS");
@@ -310,6 +316,11 @@ void setUpSensors()
 
     dps.configurePressure(DPS310_16HZ, DPS310_16SAMPLES);
     dps.configureTemperature(DPS310_16HZ, DPS310_16SAMPLES);
+
+
+
+
+
 
 
   //GPS Set up
@@ -404,9 +415,10 @@ void setup() {
   firstPayload = Payload("0013A20041C8CBB9", Serial1);
   // secondPayload = Payload("0013A20041C8CB20", Serial);
   gcs = GCS("0013A20041673290", command_handler, Serial1);
-  String telemetryFromFirstPayload = firstPayload.send_cmd_and_receive_telemetry("Payload On");
+
   // Set up initial state
-  flight_state = IDLE;
+  // flight_state = IDLE;
+  flight_state = LAUNCHING;
   send_container_telemetry = false;
   have_we_transmitted = false;
 
@@ -414,6 +426,15 @@ void setup() {
   myservo.write(75);  // set servo to mid-point
   setUpSensors();
 
+
+  // String telemetryFromFirstPayload = firstPayload.send_cmd_and_receive_telemetry("Payload On");
+  // while (telemetryFromFirstPayload == "No message")
+  // {
+  //   telemetryFromFirstPayload = firstPayload.send_cmd_and_receive_telemetry("Payload On");
+  //
+  //   Serial.println("Not Synchronised");
+  // }
+  // Serial.println("Synchronised");
 }
 
 
@@ -459,30 +480,30 @@ void handle_transmission()
       last_container_telemetry = get_telemetry_data_container();
       gcs.insert_container_telemetry(last_container_telemetry.to_string());
 
-
-      String telemetryFromFirstPayload = "ERROR";
-      telemetryFromFirstPayload = firstPayload.send_cmd_and_receive_telemetry("Payload On");
-      // Serial.println(telemetryFromFirstPayload);
-
-      if(telemetryFromFirstPayload != "ERROR")
-      {
-        String first = stringToArrayString(telemetryFromFirstPayload, ',', 0);
-        String second = stringToArrayString(telemetryFromFirstPayload, ',', 1);
-        String third = stringToArrayString(telemetryFromFirstPayload, ',', 2);
-        //
-        // Serial.println(first);
-        // Serial.println(second);
-        // Serial.println(third);
-
-        p1_temp = first.toFloat();
-        p1_altitude = second.toInt();
-        p1_sp_rotation = third.toInt();
-        SP1packet_count++;
-
-      }
-      TelemetryPacketPayload last_container_telemetry = get_telemetry_data_payload1();
+      //
+      // String telemetryFromFirstPayload = "No message";
+      // telemetryFromFirstPayload = firstPayload.send_cmd_and_receive_telemetry("Payload On");
+      // // Serial.println(telemetryFromFirstPayload);
+      //
+      // if(telemetryFromFirstPayload != "No message")
+      // {
+      //   String first = stringToArrayString(telemetryFromFirstPayload, ',', 0);
+      //   String second = stringToArrayString(telemetryFromFirstPayload, ',', 1);
+      //   String third = stringToArrayString(telemetryFromFirstPayload, ',', 2);
+      //   //
+      //   // Serial.println(first);
+      //   // Serial.println(second);
+      //   // Serial.println(third);
+      //
+      //   p1_temp = first.toFloat();
+      //   p1_altitude = second.toInt();
+      //   p1_sp_rotation = third.toInt();
+      //   SP1packet_count++;
+      //
+      //   TelemetryPacketPayload last_container_telemetry = get_telemetry_data_payload1();
+      //   gcs.insert_container_telemetry(last_container_telemetry.to_string());
+      // }
       // Serial.println(last_container_telemetry.to_string());
-      gcs.insert_container_telemetry(last_container_telemetry.to_string());
 
       have_we_transmitted = true;
       time_since_last_transmission = current_time;
